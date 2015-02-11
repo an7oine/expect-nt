@@ -1,0 +1,363 @@
+This is the source distribution of the Windows NT port of Expect 5.21,
+expectnt-5.21r1b1.  It comes with Tcl 8.0, Tk 8.0, and Expect 5.21.
+
+--------------------
+Introduction
+--------------------
+
+This is the README.NT file for the Windows NT port of Expect.  Expect is
+a program that performs programmed dialogue with other interactive programs.
+It is briefly described by its man page, expect(1).  The doc directory
+contains a man page for Expect.  See the README file for information about
+Expect.
+
+This is Expect 5 for Tcl 8.0 and Tk 8.0.  It works with no other
+versions of Tcl or Tk.  This distribution should have come with the
+code for both of these.  The Tcl 8.0 distribution has been modified
+from the original Sun Tcl 8.0 distribution.  It adds support for event
+driven I/O for pipes and serial devices, and it fixes a number of problems
+that have been exposed while implementing Expect.  This distribution gets
+information from a different registry key than the Sun distribution,
+so it can be installed safely with a Tcl 8.0 distribution as long as
+you use separate install directories.
+
+--------------------
+Compilation
+--------------------
+The only makefile that is provided for Expect is for the Microsoft
+Visual C++ compiler.  It has only been tested with MSVC++ 4.2, but
+it should compile with any version from 2.0 to 4.2.  The Tk code has
+been reported to have troubles with version 5.0, and I have not tested
+with it, so your mileage may vary.
+
+cd win
+nmake
+
+--------------------
+Installation
+--------------------
+If you wish to do an installation, you will need to do it by hand.
+For Expect, the examples and expect52.dll are the only things that
+currently need to be installed.  The examples are not used, but if
+it does not find beer.exp in the examples directory, the DLL will
+issue a warning.  You could choose to only install beer.exp, and then
+the DLL will be happy.  I would suggest using the binary installation
+as a guide when doing doing an installation by hand.
+
+
+Bug Reports
+----------------------------------------------------------------------
+If you have any problems with the port, please report them to
+  expect-nt@bmrc.berkeley.edu.
+
+Gordon Chaffee
+chaffee@bmrc.berkeley.edu
+
+
+--------------------
+Notes
+--------------------
+The code has been substantially reworked to make use of channels.
+The code does not compile under Unix anymore, but the code has been
+restructured to be platform independent where possible.  The code
+has the standard split: generic, win, unix, and mac.  Well, there
+is no mac code.
+
+Following are notes about the implementation and what does and does
+not work.
+
+----------------------------------------------------------------------
+* Seem to be working (unless otherwise noted, all flags should work)
+  close: -onexec does nothing.
+  exit
+  exp_continue
+  exp_open
+  exp_pid
+  exp_version
+  expect
+  expect_user
+  getpid
+  inter_return
+  log_file: All options should work, but not tested much
+  log_user 
+  match_max
+  parity
+  prompt1
+  prompt2
+  remove_nulls
+  send: -break currently does nothing
+  send_error: same problem as send
+  send_user:  same problem as send
+  send_tty:   same problem as send
+  sleep
+  spawn: spawning a process implemented
+         -open, -leaveopen, -noecho also implemented
+         -console, -ignore, -nottycopy, -nottyinit, -pty not implemented
+  stty: Only echo/-echo and raw/-raw options are supported.
+  trap
+  wait
+ 
+* Probably work, but not tested
+  debug
+  exp_internal
+  expect_after
+  expect_background
+  expect_before
+  expect_tty
+  strace
+
+* Not implemented
+  interact
+  interpreter
+  system
+
+* Not likely to be implemented  
+  disconnect: Doesn't make sense on NT
+  fork: Not going to happen on NT
+  overlay: I could make this work, but I'm not sure I see the point.
+  
+
+----------------------------------------------------------------------
+Potential Incompatibilities
+* The variable 'exp_nt_debug' gets checked to determine if the console
+  of the subprocess should be displayed for debugging purposes.  If
+  its boolean value is set, the console is displayed when spawn is
+  run.  Like other expect variables, it is checked in both the local
+  and global scopes.
+
+* The -i options first check identifiers as channel ids.  If no such
+  channel id exists, then they are checked as variables.  This could
+  cause a few problems, but it maintains as much backward compatibility
+  as possible.
+
+  The -i option currently takes either a spawn id or a variable name.
+  With channels being used now, I can't tell the difference between
+  a spawn id and a variable, so the EXP_INDIRECT option can no longer
+  be handled.  I could do one of two things, but neither is perfect.
+  The first is to check if the name is a channel.  If not, assume it
+  was meant to be used as a variable.  This would probably maintain
+  compatibility with just about anything that used to use this feature.
+  The second is to create a new option, -v (or something), where you
+  can specify a variable.  Its even possible that both are desirable.
+
+* exp_open is rather unnecessary with the current code.
+
+* wait
+  Added a -nohang option that returns immediately if the process
+  hasn't exited but allows wait to be called again later to get
+  the status of a process.
+
+----------------------------------------------------------------------
+* A version of telnet is provided to allow running telnet from within
+  expect scripts.  When using it, anything written to telnet will be
+  echoed twice.  This is a limitation on NT.  There are ways to get
+  partial workarounds, but none is perfect.  Intercepting calls to
+  SetConsoleMode() in the slave process is a pretty good way to find
+  out if the input is being echoed, but it isn't perfect because the
+  child could spawn other subprocesses that read from the console
+  input buffer.  Another technique would be to periodically read 
+  everything from the console output buffer and do a diff between
+  the previous and current states.  The disadvantage this has is that
+  it could miss output.  Currently, I do what is easiest: always echo
+  the input.  This is equivalent to what happens if you run telnet in
+  emacs in shell mode.
+
+----------------------------------------------------------------------
+Script Commands Needed:
+  exp_internal
+  send_log
+  send [-i id] [-h] 
+  expect [-i id] [-ex 
+  sleep
+
+C Code Usage
+  Expect
+    Need to provide an interface to set/get these.
+    Variables:
+      exp_match      # If a match occurs
+      exp_match_max  # Max bytes to match
+      exp_timeout    # Timeout for read call
+      exp_pid        # Pid of spawned process
+      exp_stty       # Not needed
+    Functions:
+      exp_expectv
+      exp_fexpectv
+      exp_spawnv
+      exp_popen
+
+  Unix calls made
+    waitpid
+        NT: exp_waitpid() or something.
+    kill
+        NT: TerminateProcess
+    close
+        NT: CloseHandle((HANDLE) fd);
+    fdopen (backup*hdlr.c)  Becomes a NULL operation on NT
+        Unix
+          typedef FILE * EXP_PFILE;
+        NT
+          typedef void * EXP_PFILE;
+          #define fdopen(x) ((EXP_PFILE) x)
+
+    fclose
+        NT: CloseHandle((HANDLE) fp);
+    fputs  (backupfshdlr.c) Replace with a call to new routine SUBPROC_puts()
+    fputc  (subprocutil.c)  Replace with calls to SUBPROC_putc()
+    ioctl  (subprocutil.c)  Remove this call on NT.
+
+  Unix structures used:
+    FILE * -- Replace with EXP_PFILE.
+        EXP_FILE maps to FILE on Unix, void on Windows NT
+
+  adbrhdlr.c: Makes use of fork and execlp, so this won't exactly work on NT.
+
+----------------------------------------------------------------------
+TODO
+* Support the interactive command.  For now, set the Tcl variable
+  exp_nt_debug to 1 for a cheap alternative.
+
+Expectlib
+----------------------------------------------------------------------
+See testclib.c for some examples of how to use the routines.
+
+* exp_spawnfd
+	Takes a native file handle.
+	Returns a handle, NULL on error
+* exp_fexpectv, exp_fexpectl:
+	Not supported on NT.  Use exp_expectv, exp_expectl instead.
+* exp_popen:
+	Returns a handle instead of a FILE *.
+* exp_printf:
+	Prints data to an expect handle
+* exp_kill:
+	Kills a given process id.
+* exp_waitpid:
+	Waits for a given process id to exit.
+* exp_perror:
+	Prints an error message to stderr.
+* exp_strerror:
+	Returns an error string for the last error.
+
+close, fclose -> exp_closefd
+kill          -> exp_kill
+waitpid       -> exp_waitpid
+fprintf       -> exp_printf
+fputc         -> exp_putc
+
+
+Instead of fd or FILE, uses opaque handles.
+
+
+----------------------------------------------------------------------
+* In tcl8.0/win/tclWinError.c, use EPIPE for message 232.  This
+  message occurs when trying to write to a pipe that has been closed
+  on the opposite end.  Reported to Scott Stanton.
+----------------------------------------------------------------------
+* CloseChannelsOnExit() in tclIO.c has problems if one channel
+  closes another channel down.  I fixed this by making a doubly
+  linked list so a channel can be removed from the current list.
+  This is only a bandaid fix.
+----------------------------------------------------------------------
+* In the Exp_SpawnCmd, ignoring signals with the '-ignore SIGNAME'
+  option is not implemented.  This is a difficult problem to solve.
+  One way to possibly get better behavior in subprocesses would be
+  to create a DLL that we inject into the subprocess. It would need
+  to trap calls to SetConsoleCtrlHandler() so that we could control
+  what does and what doesn't affect the child.  It would be most 
+  useful for trying to ignore CTRL-C in the way the -ignore flag
+  for the spawn command works right now.
+
+* I've set EXECSCRIPTDIR and SCRIPTDIR to bogus values in the
+  makefile right now.  Fix this to be handled like Tcl in the future.
+----------------------------------------------------------------------
+* Should have a flag telling when to set errors.  There will be
+  quite a few flags that will not be useful under NT, and we might like
+  to have some control over what happens in terms of error reporting.
+  Probably we should create a variable, expect_win_errors, which defines
+  if errors are flagged or not.  For now, just ignore flags NT does not
+  care about.
+   
+IMPLEMENTATION NOTES
+----------------------------------------------------------------------
+The port of Expect to Windows NT uses a number of tricks to get
+expect to control processes in an interactive manner.
+
+The first problem to be dealt with was how to get input to the
+subprocess.  The standard way of doing this is to create a child
+process and to set its standard input handle as the read end of a pipe
+that we created.  Writing to the write end of the pipe causes the
+child to see input.  The problem with this technique is that some
+programs read directly from the console.  An example of this is ftp,
+which reads a password directly from the console.  A solution to this
+problem is to write directly to the console input buffer.  A process
+that shares a console with the target process can do this.  This
+introduced another small problem: if there are two target processes
+sharing a console, where does the input go?
+
+First, expect creates a slave driver process in a separate console.  The
+slave driver connects up to expect using a named pipe.  Named pipes are full
+duplex and are capable of using overlapped I/O, so they work
+well for the purposes we need.  The one deficiency with named pipes is
+that named pipe servers do not work on Windows 95.  The slave driver then
+executes the process specified in the spawn command.  If the -pipes option
+to the spawn command is used, the slave driver redirects the standard output
+and the standard error of the spawned process through anonymous pipes.
+
+When expect wants to write input to the slave process, it sends
+a message and a string to the slave driver process.  The slave
+driver converts the string into a series of keyboard input 
+records, and it writes them to the console input buffer.  The
+slave program then reads from the keyboard input buffer, and it
+cannot tell the difference between keys entered on the keyboard
+or by the slave driver.
+
+For handling output, two threads are created.  One reads from
+the pipe redirecting the slave's stdout and the other reads from
+the pipe redirecting the slave's stderr.  All these threads do
+is read the pipe and then send the data on to expect via the
+named pipe.
+
+The second problem that I needed to solve was being able to tell
+when characters are going to be echoed when a console input record
+is removed from the console input queue.  This determines whether
+the slave driver needs to echo the characters or if the slave program
+will do any necessary echoing.
+
+The third problem is that some strings get written directly to the
+console even though stdout and stderr have been redirected.
+
+There is one method that is used to solve problems two and three:
+API call interception.  We use it to determine the current console
+mode as set by SetConsoleMode().  We also use it to capture the
+output that flows through WriteConsoleA() and WriteConsoleW().
+
+There are a few API call interception techniques.  They are
+discussed extensively by Matt Pietrek in the December 1994 issue
+of Microsoft Systems Journal as well as in his book Windows 95
+System Programming Secrets.  The technique he uses in his APISPY
+utility is different than the one used here.  The technique he
+uses is this:
+  1. Create a debugger type process to control a subprocess.
+  2. Execute the subprocess, pausing execution before any code
+     gets executed.
+  3. Swap out of the subprocesses' some code and add some code
+     that will load a DLL.
+  4. Let the code continue, loading the DLL.
+  5. Call the DLL code to modify function jump points to jump
+     to logging special logging code when a function is called.
+  6. Hit a breakpoint in the DLL.  The original code now is
+     put back, the program counter is restored, and the program
+     continues.
+  7. Logging code modifies the return address so the return
+     value can be captured.
+
+I chose not to implement my API interception technique this way
+for a two primary reasons.  The first is that we do not need to
+intercept a function very often.
+
+the slave driver program needed to extract some information
+from the slave program.  
+
+The second thing we do is to make the slave driver into a debugger
+process.  When it creates the process, it uses a flag to tell it
+that the process is going to be debugged.  

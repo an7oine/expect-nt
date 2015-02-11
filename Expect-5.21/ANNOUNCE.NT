@@ -1,0 +1,67 @@
+                  Expect-5.21 For Windows NT
+                   Version Release 1 Beta 1
+                        November 14, 1997
+
+                        Gordon Chaffee
+                   chaffee@cs.berkeley.edu
+
+This is a release of Expect-5.21 for Windows NT.  It does not work on
+Windows 95.
+
+The distribution comes in both source and binary forms.  It comes with
+Tcl 8.0, Tk 8.0, and Expect 5.21.  It does not work with any other
+versions of Tcl and Tk (see note below for reason.)
+
+The source and binary packages for Windows NT can be found at:
+
+  http://bmrc.berkeley.edu/people/chaffee/expectnt.html
+or
+  ftp://bmrc.berkeley.edu/pub/winnt/tcltk/expect-5.21r1b1-setup.exe
+  ftp://bmrc.berkeley.edu/pub/winnt/tcltk/expect-src-5.21r1b1.zip
+
+
+INTRODUCTION TO EXPECT ON WINDOWS NT
+----------------------------------------------------------------------
+
+Expect is a program that performs programmed dialogue with other
+interactive programs.  It is briefly described by its man page,
+expect(1).  The doc directory contains a man page for Expect.  See the
+README file in the source distribution for information about Expect.
+
+This is Expect 5 for Tcl 8.0 and Tk 8.0.  It works with no other
+versions of Tcl or Tk.  This distribution comes with the code for
+both Tcl 8.0 and Tk 8.0.  The Tcl 8.0 distribution has been modified
+from the original Tcl 8.0 distribution.  It adds support for event
+driven I/O over pipes and event driven console input.  This distribution
+gets information from a different registry key than the Sun
+distribution, so it can be installed safely with a Tcl 8.0
+distribution as long as you use separate install directories.
+
+The Expect home page is: http://expect.nist.gov
+The Expect FAQ is:       http://expect.nist.gov/FAQ.html
+
+In the NT port, most commands in expect are supported with the one
+major exeception being the 'interactive' comamnd.  See the README.NT
+file in the source distribution for more information on what is and is
+not supported.
+
+----------------------------------------------------------------------
+BUG REPORTS
+----------------------------------------------------------------------
+If you have any problems with the port, please report them to
+  expect-nt@bmrc.berkeley.edu.
+
+Gordon Chaffee
+chaffee@bmrc.berkeley.edu
+
+ACKNOWLEDGEMENTS
+----------------------------------------------------------------------
+This package would not have been possible without the excellent work
+done by Don Libes (libes@nist.gov).  Don wrote Expect, and he was very
+helpful in answering my questions.
+
+I wish to thank Mitel Corporation, in particular Mark Cloutier, for
+financial support of this project.
+
+I also wish to thank Eric Youngdale and Kenneth Liao for their patience
+and helpful bug reporting and bug fixes.

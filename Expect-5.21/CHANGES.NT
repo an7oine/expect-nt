@@ -1,0 +1,154 @@
+----------------- Expect-5.21 r1b1 Release --------------------------
+
+* Fixed premature EOF for serial communications.
+
+* Better trap support for CTRL_BREAK_EVENT, treated as SIGQUIT.
+
+* Removed use of CreateRemoveThread() in the slave driver.  This removes
+  one of the roadblocks to making Expect run on Windows 95.  The named
+  pipe server is the one remaining problem.
+
+* Greatly simplified the handling of descendent children processes in
+  expWinSlaveDbg.c.  Many thanks to Eric Youngdale <EricY@datafocus.com>
+  for finding a better way to do this and for his patches.
+
+* Fixed crash when over 4096 characters were written using the logging
+  functions.
+
+* Use more accurate test for consoles in code that wants to only
+  operate on consoles.
+
+* Fix crashes in Tcl when stdin and stdout are the same handles.
+  This is caused if a higher level program is redirecting the
+  handles to a single handle.
+
+* Put in support for more efficient subprocess memory reading by
+  caching most recently read page.  Code disabled because it isn't
+  yet working properly.
+
+* Changed serial support to overlapped I/O so simultaneous read and
+  write operations can be in effect.  This fixes locking up problem
+  that was occurring.
+
+* Begin to support serial devices.
+
+* Changed slavedrv to use the same, but duplicated, pipe to read from
+  the slave in -pipes mode.  This gives a more deterministic output.
+
+* Fixed problem where if a close on either stdout or stderr of the slave
+  in -pipes mode closes the channel between expect and the slave driver.
+
+* Fixed handling of send_user.
+
+* Add interception of WriteConsoleOutput so programs like the console vi
+  from MKS will work.
+
+* Add interception of WriteConsoleOutputCharacter so programs like the
+  console based emacs will work.
+
+* Fix send -null.  It would return on error on a valid result.
+
+* Change slave driver so that when using spawn -pipes, it doesn't
+  invoke the debugger.
+
+* Added support for using shell scripts with the spawn command.
+
+* Fix minor bug in tclWinReader.c where we tried to close the same handles
+  multiple times.
+
+* Beginnings of a real Windows test suite in win/tests/.
+
+* Incorporated patch from Eric Young <EricY@datafocus.com> to handle
+  shell script binaries.
+
+* Fixed a race condition in the pipe where an eof could be reported before
+  an actual eof occurred.
+
+* Workaround for case where injected DLL will not initialize after any
+  propcess handled by a slave driver exits.  Since the DLL was not being
+  used anyway, disabled the call to the injected DLL.
+
+* Fixed bugs in slave decendent process creation interception and handling.
+
+* Fixed eof condition that was not properly detected when reading from a pipe.
+
+* Fixed broken Tcl close command handling.  Expect was not passing on
+  Tcl syntax closes correctly.
+
+----------------- Expect-5.21 r1a2 Release --------------------------
+
+* Changed reader thread to only begin reading from the console when
+  something is interested in the console.
+
+* Add support for stty command.
+
+* Workaround for bug in channels in interaction between Tcl_DoOneEvent()
+  and Tcl_Read().  Data can be in a channel but Tcl_DoOneEvent() will
+  not generate a readable event.  Workaround involves a change to
+  GetInput() in tclIO.c.
+
+* Extracted pipe event code into more generic code that also works with
+  stdin.  Stdin can now be event driven in Tcl.
+
+* Changed pair channel to be able to work with filehandlers.  Lots of
+  fixups.  Added -blockpropagate option.  Probably only useful 
+  internally.
+
+* Moved everything to use channel handlers instead of file handlers as
+  required by Tcl 8.0
+
+----------------- Begin update to Tcl 8.0 final --------------------------
+
+* Fixed problem in the environment variable PATH handling in Tcl.
+  Problem does not exist in the final version of Tcl.
+
+* Fixed multiple memory problems in my Tcl event driven pipe code.
+
+* Added the ability to intercept CreateProcess functions in slaves.
+  This allows us to capture output from all decendents of the first
+  slave.  All decendendents are terminated when expect closes its
+  pipe to all the children.
+
+  Changes the default capture method to not capture through pipes but
+  directly from the console output.
+
+* Added a -pipes option to the spawn command on Windows NT.  This
+  specifies how output is read from subprocesses and decendents.
+  Using pipes causes the output to get buffered, and this can cause
+  behavior that is different than interactive behavior.
+
+  If you do not specify the -pipes option, data will be captured
+  as it is written to the console.  However, in certain cases,
+  there can be problems with subprocesses that start other
+  subprocesses.  This should only be a problem when the subprocess
+  inherits handles other than the stdin, stdout, and stderr handles.
+
+* Fixed the channel pairing mechanism to handle underlying channels
+  closing.  Thanks to Kenenth Liao <kliao@cisco.com> for pointing
+  this problem out.
+
+* Changed exp_kill() is Expectlib to use the expect kill command
+  if the process was started by Expectlib.
+
+* Fixed bug in exp_i_parse_channels.  Found by
+  Grant Reaber <greaber@reed.edu>.
+
+* Fixed slave driver debugger to not handle all debug exceptions.
+  This allows Ctrl-C and Ctrl-Break to be processed in the slave
+  instead of in the debugger.
+
+* Fixed Tcl's asynchronous event stuff to work on Win32.  This allows
+  the trap command to work properly.
+
+* Added some support for the trap command.  Only SIGINT is really
+  supported on NT.
+
+* Added a kill (and exp_kill) command to kill subprocesses.
+  Takes a signal value to use.  On NT, the signal indicates
+  how to kill the subprocess.  If the signal value is 2, a
+  Ctrl-C is sent.  If the signal value is 3, a Ctrl-Break is
+  sent.  Any other signal causes the process to be terminated.
+
+* Cleaned up Windows event driven pipe code.  
+
+----------------- Release Release 1 Alpha 1 --------------------------
